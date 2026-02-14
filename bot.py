@@ -1,0 +1,109 @@
+import asyncio
+import discord
+import logging
+import os
+import subprocess
+import tempfile
+
+logger = logging.getLogger(__name__)
+
+intents = discord.Intents.default()
+intents.message_content = True
+
+client = discord.Client(intents=intents)
+
+@client.event
+async def on_ready():
+    logger.info("Logged in as: %s", client.user)
+
+@client.event
+async def on_message(message):
+    if message.author == client.user:
+        return
+
+    logger.info("Got a message: %s", message.content)
+
+    sources = get_sources(message.content)
+    if sources:
+        with tempfile.TemporaryDirectory() as dir:
+            logger.info("... writing sources")
+            names = write_sources(dir, sources)
+            logger.info("... typesetting")
+            codes = await typeset(dir, names)
+            if all(c == 0 for c in codes):
+                logger.info("... getting images")
+                files = get_images(dir)
+                await message.channel.send("ok", files=files)
+            else:
+                await message.channel.send(f"error: {codes}")
+            logger.info("... done.")
+
+def odd(l):
+    """Return True iff l has odd length."""
+    return len(l) % 2
+
+def get_sources(content):
+    """Parse message content for a list of sources."""
+    sources = []
+    parts = content.split("```")
+    if len(parts) >= 3 and odd(parts):
+        for block in parts[1::2]:
+            if block.startswith("typst"):
+                s = block[5:].strip()
+                sources.append(s)
+    for block in parts[0::2]:
+        subparts = block.split("`")
+        if len(subparts) >= 3 and odd(subparts):
+            for quote in subparts[1::2]:
+                if quote.startswith("$") and quote.endswith("$"):
+                    sources.append(quote)
+    return sources
+
+def write_sources(dir, sources):
+    """Write sources to a directory, returning file names."""
+    names = []
+    for i, s in enumerate(sources):
+        n = os.path.join(dir, f"in{i}.typ")
+        with open(n, "w") as f:
+            f.write(s)
+        names.append(n)
+    return names
+    
+async def typeset(dir, names):
+    """Run typst in parallel on every name."""
+    jobs = []
+    for i, n_in in enumerate(names):
+        n_out = os.path.join(dir, f"out{i}-{{p}}.png")
+        proc = await asyncio.create_subprocess_exec(
+            "typst",
+            "compile",
+            "--format", "png",
+            "--root", dir,
+            n_in, n_out)
+        jobs.append(proc)
+    await asyncio.gather(*[proc.wait() for proc in jobs])
+    return [proc.returncode for proc in jobs]
+
+def get_images(dir):
+    """Return the list of Discord images to send."""
+    files = []
+    for n in os.listdir(dir):
+        if n.endswith(".png"):
+            n = os.path.join(dir, n)
+            # Trim the image first to make it Discord-friendly
+            subprocess.run([
+                "mogrify",
+                "-trim",
+                "-bordercolor", "white",
+                "-border", "3",
+                n])
+            f = discord.File(n)
+            files.append(f)
+    return files
+
+# Read the secret token that identifies this bot.
+with open("/run/secrets/discord_bot_token", "r") as f:
+    TOKEN = f.readline().strip()
+
+if __name__ == "__main__":
+    client.run(TOKEN)

@@ -1,0 +1,9 @@
+services:
+  dtb:
+    image: dtb
+    secrets:
+      - discord_bot_token
+
+secrets:
+  discord_bot_token:
+    file: ./discord_bot_token
