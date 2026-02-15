@@ -108,7 +108,7 @@ def get_images(dir):
     return files
 
 # Read the secret token that identifies this bot.
-with open("/run/secrets/discord_bot_token", "r") as f:
+with open("/run/secrets/discord-bot-token", "r") as f:
     TOKEN = f.readline().strip()
 
 if __name__ == "__main__":

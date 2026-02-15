@@ -8,7 +8,7 @@ docker build --tag dtb .
 
 ## Get the token
 
-Put it in `discord_bot_token`.
+Put it in `discord-bot-token`.
 
 ## Run
 

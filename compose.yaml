@@ -2,8 +2,8 @@ services:
   dtb:
     image: dtb
     secrets:
-      - discord_bot_token
+      - discord-bot-token
 
 secrets:
-  discord_bot_token:
-    file: ./discord_bot_token
+  discord-bot-token:
+    file: ./discord-bot-token
