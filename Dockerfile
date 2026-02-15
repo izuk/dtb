@@ -22,4 +22,6 @@ RUN bin/pip install discord.py
 
 ADD ./bot.py .
 
+ENV PYTHONUNBUFFERED=1
+
 CMD ["bin/python3", "bot.py"]

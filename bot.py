@@ -3,7 +3,13 @@ import discord
 import logging
 import os
 import subprocess
+import sys
 import tempfile
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
 
 logger = logging.getLogger(__name__)
 
