@@ -20,8 +20,8 @@ WORKDIR /dtb
 
 RUN bin/pip install discord.py
 
-ADD ./bot.py .
+ADD ./discord-typesetting-bot.py .
 
 ENV PYTHONUNBUFFERED=1
 
-CMD ["bin/python3", "bot.py"]
+CMD ["bin/python3", "discord-typesetting-bot.py"]
