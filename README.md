@@ -1,17 +1,23 @@
 # Discord Typesetting Bot
 
+## Get the token
+
+Put it in `discord-bot-token`.
+
 ## Build the image
 
 ```
 docker build --tag dtb .
 ```
 
-## Get the token
-
-Put it in `discord-bot-token`.
-
 ## Run
 
 ```
 docker compose up
+```
+
+## Or, if on NixOS
+
+```
+nix-shell
 ```
