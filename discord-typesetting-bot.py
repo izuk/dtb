@@ -135,6 +135,14 @@ Ex:
 async def dtb_usage(ctx):
     await ctx.send(USAGE)
 
+@bot.command()
+async def dtb_prelude(ctx):
+     await ctx.send("\n".join([
+         r"```typst",
+         PRELUDE,
+         r"```",
+     ]))
+
 # Read the secret token that identifies this bot.
 with open("/run/secrets/discord-bot-token", "r") as f:
     TOKEN = f.readline().strip()
