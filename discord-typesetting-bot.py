@@ -6,6 +6,15 @@ import subprocess
 import sys
 import tempfile
 
+PRELUDE = r"""
+#let tr(body) = $"Tr"(#body)$
+#let det(body) = $"Det"(#body)$
+
+#let bra(body) = $chevron.l #body|$
+#let ket(body) = $|#body chevron.r$
+#let braket(part1, part2) = $chevron.l #part1|#part2 chevron.r$
+"""
+
 logging.basicConfig(
     level=logging.DEBUG,
     handlers=[logging.StreamHandler(sys.stdout)]
@@ -71,6 +80,7 @@ def write_sources(dir, sources):
     for i, s in enumerate(sources):
         n = os.path.join(dir, f"in{i}.typ")
         with open(n, "w") as f:
+            f.write(PRELUDE)
             f.write(s)
         names.append(n)
     return names
