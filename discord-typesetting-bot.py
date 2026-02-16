@@ -1,5 +1,6 @@
 import asyncio
 import discord
+from discord.ext import commands
 import logging
 import os
 import subprocess
@@ -25,15 +26,15 @@ logger = logging.getLogger(__name__)
 intents = discord.Intents.default()
 intents.message_content = True
 
-client = discord.Client(intents=intents)
+bot = commands.Bot(command_prefix="$", intents=intents)
 
-@client.event
+@bot.event
 async def on_ready():
-    logger.info("Logged in as: %s", client.user)
+    logger.info("Logged in as: %s", bot.user)
 
-@client.event
+@bot.event
 async def on_message(message):
-    if message.author == client.user:
+    if message.author == bot.user:
         return
 
     logger.info("Got a message: %s", message.content)
@@ -52,6 +53,8 @@ async def on_message(message):
             else:
                 await message.channel.send(f"error: {codes}")
             logger.info("... done.")
+
+    await bot.process_commands(message)
 
 def odd(l):
     """Return True iff l has odd length."""
@@ -117,9 +120,24 @@ def get_images(dir):
             files.append(f)
     return files
 
+USAGE = r"""
+Format everything surrounded by \` (backtick) and \$
+(dollar sign) in typst math mode.
+
+Format everything in a typst code block with typst.
+
+Ex:
+
+`` `$e^alpha$` ``
+"""
+
+@bot.command()
+async def dtb_usage(ctx):
+    await ctx.send(USAGE)
+
 # Read the secret token that identifies this bot.
 with open("/run/secrets/discord-bot-token", "r") as f:
     TOKEN = f.readline().strip()
 
 if __name__ == "__main__":
-    client.run(TOKEN)
+    bot.run(TOKEN)
