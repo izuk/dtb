@@ -45,13 +45,14 @@ async def on_message(message):
             logger.info("... writing sources")
             names = write_sources(dir, sources)
             logger.info("... typesetting")
-            codes = await call_typst(dir, names)
+            codes, errs = await call_typst(dir, names)
             if all(c == 0 for c in codes):
                 logger.info("... getting images")
                 files = get_images(dir)
                 await message.channel.send("ok", files=files)
             else:
-                await message.channel.send(f"error: {codes}")
+                msg = "\n".join([f"err: {codes}"] + errs)
+                await message.channel.send(msg)
             logger.info("... done.")
 
     await bot.process_commands(message)
@@ -98,10 +99,14 @@ async def call_typst(dir, names):
             "compile",
             "--format", "png",
             "--root", dir,
-            n_in, n_out)
+            n_in, n_out,
+            stderr=asyncio.subprocess.PIPE)
         jobs.append(proc)
     await asyncio.gather(*[proc.wait() for proc in jobs])
-    return [proc.returncode for proc in jobs]
+    codes = [proc.returncode for proc in jobs]
+    errs = [await proc.stderr.read() for proc in jobs]
+    errs = [e.decode("utf8") for e in errs]
+    return codes, errs
 
 def get_images(dir):
     """Return the list of Discord images to send."""
@@ -124,12 +129,12 @@ def get_images(dir):
 async def typeset(ctx, source):
     with tempfile.TemporaryDirectory() as dir:
         names = write_sources(dir, [source])
-        codes = await call_typst(dir, names)
+        codes, _ = await call_typst(dir, names)
         if codes[0] == 0:
             files = get_images(dir)
             await ctx.send("ok", files=files)
         else:
-            await ctx.send(f"error: {codes}")
+            await ctx.send(f"err: {codes}")
 
 USAGE = r"""
 Format everything surrounded by \` (backtick) and \$
