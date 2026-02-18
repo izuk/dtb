@@ -45,7 +45,7 @@ async def on_message(message):
             logger.info("... writing sources")
             names = write_sources(dir, sources)
             logger.info("... typesetting")
-            codes = await typeset(dir, names)
+            codes = await call_typst(dir, names)
             if all(c == 0 for c in codes):
                 logger.info("... getting images")
                 files = get_images(dir)
@@ -88,7 +88,7 @@ def write_sources(dir, sources):
         names.append(n)
     return names
     
-async def typeset(dir, names):
+async def call_typst(dir, names):
     """Run typst in parallel on every name."""
     jobs = []
     for i, n_in in enumerate(names):
@@ -120,6 +120,17 @@ def get_images(dir):
             files.append(f)
     return files
 
+@bot.command(description=r"Typeset a (short) string.")
+async def typeset(ctx, source):
+    with tempfile.TemporaryDirectory() as dir:
+        names = write_sources(dir, [source])
+        codes = await call_typst(dir, names)
+        if codes[0] == 0:
+            files = get_images(dir)
+            await ctx.send("ok", files=files)
+        else:
+            await ctx.send(f"error: {codes}")
+
 USAGE = r"""
 Format everything surrounded by \` (backtick) and \$
 (dollar sign) in typst math mode.
@@ -131,11 +142,11 @@ Ex:
 `` `$e^alpha$` ``
 """
 
-@bot.command()
+@bot.command(description=r"How to use the typesetting bot.")
 async def usage(ctx):
     await ctx.send(USAGE)
 
-@bot.command()
+@bot.command(description=r"Display the prelude of every input.")
 async def prelude(ctx):
      await ctx.send("\n".join([
          r"```typst",
