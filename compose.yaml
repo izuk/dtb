@@ -1,6 +1,6 @@
 services:
   dtb:
-    image: dtb
+    image: izuk/dtb
     secrets:
       - discord-bot-token
 

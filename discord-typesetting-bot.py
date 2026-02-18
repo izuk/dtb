@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 intents = discord.Intents.default()
 intents.message_content = True
 
-bot = commands.Bot(command_prefix="$", intents=intents)
+bot = commands.Bot(command_prefix="=", intents=intents)
 
 @bot.event
 async def on_ready():
@@ -132,11 +132,11 @@ Ex:
 """
 
 @bot.command()
-async def dtb_usage(ctx):
+async def usage(ctx):
     await ctx.send(USAGE)
 
 @bot.command()
-async def dtb_prelude(ctx):
+async def prelude(ctx):
      await ctx.send("\n".join([
          r"```typst",
          PRELUDE,
